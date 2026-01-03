@@ -334,6 +334,15 @@
                 font-size: 24px;
             }
         }
+        
+        /* PDF Generation State */
+        body.generating-pdf #mirror-doc {
+            max-width: 100%;
+            width: 100%;
+            margin: 0;
+            box-shadow: none;
+            border: none;
+        }
     </style>
 </head>
 <body>
@@ -551,29 +560,31 @@
         function exportToPDF() {
             const element = document.getElementById('mirror-doc');
             const btn = document.querySelector('.export-btn');
+            const body = document.body;
             
             btn.textContent = "Generating PDF...";
+            body.classList.add('generating-pdf');
             
-            // Configuration for perfect A4 generation from mobile
+            // Configuration for full-width A4 generation
             const opt = {
-                margin:       [10, 10, 10, 10], // Margins
+                margin:       [10, 10, 10, 10], 
                 filename:     'My_Architect_Mirror.pdf',
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { 
-                    scale: 2, // High resolution
+                    scale: 2, 
                     useCORS: true, 
                     logging: false,
-                    scrollY: 0, // Forces capture from top, fixing the "cut off" issue
-                    windowWidth: 1024 // Forces desktop rendering width to fix layout issues on phone
+                    scrollY: 0,
+                    windowWidth: 800 // Desktop width for proper layout
                 },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] } // Smart page breaks
+                pagebreak:    { mode: ['css', 'legacy'] } 
             };
 
-            // Wait a moment for UI to update
             setTimeout(() => {
                 html2pdf().set(opt).from(element).save().then(() => {
                     btn.textContent = "Export to PDF";
+                    body.classList.remove('generating-pdf');
                 });
             }, 500);
         }
