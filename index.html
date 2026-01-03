@@ -336,12 +336,19 @@
         }
         
         /* PDF Generation State */
+        body.generating-pdf {
+            height: auto !important;
+            overflow: visible !important;
+        }
+        
         body.generating-pdf #mirror-doc {
-            max-width: 100%;
-            width: 100%;
-            margin: 0;
-            box-shadow: none;
-            border: none;
+            max-width: 100% !important;
+            width: 800px !important; /* Forces standard A4-friendly width */
+            margin: 0 !important;
+            box-shadow: none !important;
+            border: none !important;
+            height: auto !important;
+            overflow: visible !important;
         }
     </style>
 </head>
@@ -565,6 +572,9 @@
             btn.textContent = "Generating PDF...";
             body.classList.add('generating-pdf');
             
+            // Calculate full height to ensure capture
+            const totalHeight = element.scrollHeight;
+
             // Configuration for full-width A4 generation
             const opt = {
                 margin:       [10, 10, 10, 10], 
@@ -575,7 +585,8 @@
                     useCORS: true, 
                     logging: false,
                     scrollY: 0,
-                    windowWidth: 800 // Desktop width for proper layout
+                    windowWidth: 800, // Forces desktop width
+                    windowHeight: totalHeight + 100 // Forces full height capture
                 },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
                 pagebreak:    { mode: ['css', 'legacy'] } 
