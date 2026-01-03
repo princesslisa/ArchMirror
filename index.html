@@ -147,6 +147,7 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
+            page-break-inside: avoid; /* Prevent split title */
         }
 
         .section-number {
@@ -159,6 +160,7 @@
         /* --- FORM QUESTIONS --- */
         .question-block {
             margin-bottom: 25px;
+            page-break-inside: avoid; /* Prevent split questions */
         }
 
         .q-label {
@@ -183,6 +185,7 @@
             margin-bottom: 20px;
             border-left: 1px solid rgba(212, 175, 55, 0.3);
             padding-left: 15px;
+            page-break-inside: avoid; /* Prevent split sub-questions */
         }
 
         /* Text Areas */
@@ -265,6 +268,7 @@
             text-align: center;
             border-top: 1px solid rgba(212, 175, 55, 0.3);
             padding-top: 30px;
+            page-break-inside: avoid;
         }
 
         .pledge {
@@ -329,11 +333,6 @@
             .section-number {
                 font-size: 24px;
             }
-        }
-
-        /* PDF Specific Fixes (Hidden during normal view) */
-        .pdf-page-break {
-            page-break-before: always;
         }
     </style>
 </head>
@@ -555,12 +554,20 @@
             
             btn.textContent = "Generating PDF...";
             
+            // Configuration for perfect A4 generation from mobile
             const opt = {
-                margin: 0,
-                filename: 'My_Architect_Mirror.pdf',
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true, logging: false },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                margin:       [10, 10, 10, 10], // Margins
+                filename:     'My_Architect_Mirror.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { 
+                    scale: 2, // High resolution
+                    useCORS: true, 
+                    logging: false,
+                    scrollY: 0, // Forces capture from top, fixing the "cut off" issue
+                    windowWidth: 1024 // Forces desktop rendering width to fix layout issues on phone
+                },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] } // Smart page breaks
             };
 
             // Wait a moment for UI to update
