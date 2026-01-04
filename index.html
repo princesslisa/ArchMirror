@@ -8,8 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
-    <!-- PDF Generation Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
     <style>
         :root {
             --bg-dark: #121212;
@@ -41,7 +40,7 @@
         /* --- THE DOCUMENT CONTAINER --- */
         #mirror-doc {
             width: 100%;
-            max-width: 600px;
+            max-width: 600px; /* Mobile View Width */
             background-color: var(--forest-green);
             background-image: linear-gradient(rgba(10, 31, 26, 0.95), rgba(10, 31, 26, 0.95)), 
                             url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23D4AF37' fill-opacity='0.05'%3E%3Cpath d='M0 0h20L0 20z'/%3E%3C/g%3E%3C/svg%3E");
@@ -146,9 +145,7 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
-            /* Avoid splitting the title itself */
-            page-break-inside: avoid;
-            page-break-after: avoid; 
+            page-break-after: avoid;
         }
 
         .section-number {
@@ -161,8 +158,12 @@
         /* --- FORM QUESTIONS --- */
         .question-block {
             margin-bottom: 25px;
-            /* Allow breaking BETWEEN questions, but try to keep a question together */
-            page-break-inside: avoid; 
+            page-break-inside: avoid; /* Standard blocks stay together */
+        }
+        
+        /* Exception for long blocks (Section 6) */
+        .question-block.allow-break {
+            page-break-inside: auto;
         }
 
         .q-label {
@@ -187,9 +188,7 @@
             margin-bottom: 20px;
             border-left: 1px solid rgba(212, 175, 55, 0.3);
             padding-left: 15px;
-            /* CRITICAL FIX: Allow page break INSIDE the large audit block, 
-               but keep each individual nested question together */
-            page-break-inside: avoid; 
+            page-break-inside: avoid; /* Individual sub-questions stay together */
         }
 
         /* Text Areas */
@@ -207,13 +206,7 @@
             resize: vertical;
         }
 
-        textarea:focus {
-            outline: none;
-            border-color: var(--gold);
-            background: rgba(0,0,0,0.3);
-        }
-
-        /* Selection Buttons (Radio replacement) */
+        /* Selection Buttons */
         .options-grid {
             display: grid;
             gap: 10px;
@@ -229,10 +222,6 @@
             transition: all 0.2s;
             display: flex;
             align-items: center;
-        }
-
-        .option-btn:hover {
-            background: rgba(255,255,255,0.1);
         }
 
         .option-btn.selected {
@@ -272,14 +261,6 @@
             text-align: center;
             border-top: 1px solid rgba(212, 175, 55, 0.3);
             padding-top: 30px;
-            page-break-inside: avoid;
-        }
-
-        .pledge {
-            font-family: 'Cinzel', serif;
-            font-size: 14px;
-            color: var(--gold);
-            margin-bottom: 30px;
         }
 
         .signature-box {
@@ -294,7 +275,7 @@
             border: none;
             color: white;
             text-align: center;
-            font-family: 'Scripts', cursive, 'Montserrat'; /* Fallback */
+            font-family: 'Montserrat';
             font-style: italic;
             font-size: 18px;
             padding: 10px;
@@ -329,41 +310,63 @@
             max-width: 400px;
         }
 
-        /* Mobile tweaks */
-        @media (max-width: 600px) {
+        /* --- PRINT STYLES (THE FIX) --- */
+        @media print {
+            /* 1. Hide unwanted elements */
+            .controls, button { 
+                display: none !important; 
+            }
+
+            /* 2. Reset Body Layout */
+            body {
+                background: none;
+                margin: 0;
+                padding: 0;
+                display: block;
+                width: 100%;
+            }
+
+            /* 3. Force Document Width to A4 */
             #mirror-doc {
-                padding: 25px;
+                width: 100%;
+                max-width: 100%;
+                margin: 0;
+                box-shadow: none;
+                border: none;
+                padding: 30px; /* Standard Print Padding */
+                /* Force Print Colors */
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                background-color: #0a1f1a !important; /* Force green bg */
             }
-            .section-number {
-                font-size: 24px;
+
+            /* 4. Text Color Safety */
+            input, textarea {
+                color: #fff !important;
+                border-bottom: 1px solid #aaa;
+            }
+            
+            /* 5. Pagination Control */
+            .section-title {
+                page-break-after: avoid;
+            }
+            
+            /* Fix for Section 6 Gap */
+            .question-block.allow-break {
+                page-break-inside: auto;
+            }
+            
+            .q-nested {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+
+            /* Ensure Page Size */
+            @page {
+                size: A4 portrait;
+                margin: 0; /* Remove browser default margins to allow full color */
             }
         }
-        
-        /* --- PDF EXPORT OVERRIDES --- */
-        /* These classes are applied via JS during export only */
-        
-        body.exporting {
-            /* Force white bg so margins don't look weird */
-            background: #ffffff !important;
-            align-items: flex-start !important; /* Forces Left Alignment */
-            width: 794px !important; /* Exact A4 width in pixels at 96dpi */
-            overflow: visible !important;
-        }
-
-        .exporting #mirror-doc {
-            max-width: none !important;
-            width: 100% !important;
-            margin: 0 !important;
-            box-shadow: none !important;
-            border: none !important;
-            /* Ensure text contrast is high for PDF */
-            background-color: #0a1f1a !important; 
-        }
-
-        .exporting .controls {
-            display: none !important;
-        }
-
     </style>
 </head>
 <body>
@@ -472,7 +475,8 @@
             <span class="section-number">03</span>
         </div>
 
-        <div class="question-block">
+        <!-- NOTE: Added 'allow-break' class to let this section split across pages naturally -->
+        <div class="question-block allow-break">
             <span class="q-label">6. Diagnostic Audit</span>
             <span class="q-sub">Distinguish between 'cool terms' and actual traits. Dig deeper into your friction points.</span>
             
@@ -557,49 +561,26 @@
 
     <!-- CONTROL BAR -->
     <div class="controls">
-        <button class="export-btn" onclick="exportToPDF()">Export to PDF</button>
+        <button class="export-btn" onclick="printDoc()">Export to PDF</button>
     </div>
 
     <script>
+        // Handle Option Selection
         function selectOption(groupId, element) {
             const container = document.getElementById(groupId + '-options');
             const buttons = container.getElementsByClassName('option-btn');
-            for (let btn of buttons) { btn.classList.remove('selected'); }
+            
+            // Clear all in group
+            for (let btn of buttons) {
+                btn.classList.remove('selected');
+            }
+            // Select clicked
             element.classList.add('selected');
         }
 
-        function exportToPDF() {
-            const element = document.getElementById('mirror-doc');
-            const btn = document.querySelector('.export-btn');
-            
-            btn.textContent = "Generating PDF...";
-            
-            // 1. Activate Export Mode (Forces correct width & alignment)
-            document.body.classList.add('exporting');
-            
-            // 2. Wait 800ms for CSS layout to snap into place
-            setTimeout(() => {
-                const opt = {
-                    margin:       [10, 0, 10, 0], // Top/Bottom margins only
-                    filename:     'My_Architect_Mirror.pdf',
-                    image:        { type: 'jpeg', quality: 0.98 },
-                    html2canvas:  { 
-                        scale: 2, // High Res
-                        useCORS: true, 
-                        logging: false,
-                        scrollY: 0,
-                        windowWidth: 794 // Match the CSS width exactly
-                    },
-                    jsPDF:        { unit: 'px', format: 'a4', orientation: 'portrait' }, // Pixel-perfect A4
-                    pagebreak:    { mode: ['css', 'legacy'] } 
-                };
-
-                html2pdf().set(opt).from(element).save().then(() => {
-                    // 3. Reset after save
-                    btn.textContent = "Export to PDF";
-                    document.body.classList.remove('exporting');
-                });
-            }, 800);
+        // Native Print Trigger
+        function printDoc() {
+            window.print();
         }
     </script>
 
