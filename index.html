@@ -145,7 +145,7 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
-            page-break-after: avoid;
+            page-break-after: avoid; /* Keep title with content */
         }
 
         .section-number {
@@ -158,12 +158,6 @@
         /* --- FORM QUESTIONS --- */
         .question-block {
             margin-bottom: 25px;
-            page-break-inside: avoid; /* Standard blocks stay together */
-        }
-        
-        /* Exception for long blocks (Section 6) */
-        .question-block.allow-break {
-            page-break-inside: auto;
         }
 
         .q-label {
@@ -188,7 +182,6 @@
             margin-bottom: 20px;
             border-left: 1px solid rgba(212, 175, 55, 0.3);
             padding-left: 15px;
-            page-break-inside: avoid; /* Individual sub-questions stay together */
         }
 
         /* Text Areas */
@@ -310,14 +303,10 @@
             max-width: 400px;
         }
 
-        /* --- PRINT STYLES (THE FIX) --- */
+        /* --- PRINT STYLES --- */
         @media print {
-            /* 1. Hide unwanted elements */
-            .controls, button { 
-                display: none !important; 
-            }
+            .controls, button { display: none !important; }
 
-            /* 2. Reset Body Layout */
             body {
                 background: none;
                 margin: 0;
@@ -326,45 +315,55 @@
                 width: 100%;
             }
 
-            /* 3. Force Document Width to A4 */
             #mirror-doc {
                 width: 100%;
                 max-width: 100%;
                 margin: 0;
                 box-shadow: none;
                 border: none;
-                padding: 30px; /* Standard Print Padding */
-                /* Force Print Colors */
+                padding: 20px 40px; 
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
-                background-color: #0a1f1a !important; /* Force green bg */
+                background-color: #0a1f1a !important;
             }
 
-            /* 4. Text Color Safety */
             input, textarea {
                 color: #fff !important;
                 border-bottom: 1px solid #aaa;
             }
-            
-            /* 5. Pagination Control */
-            .section-title {
-                page-break-after: avoid;
-            }
-            
-            /* Fix for Section 6 Gap */
-            .question-block.allow-break {
-                page-break-inside: auto;
-            }
-            
-            .q-nested {
+
+            /* --- BREAK LOGIC --- */
+
+            /* 1. General Rule: Avoid breaking inside standard blocks */
+            .question-block {
                 page-break-inside: avoid;
                 break-inside: avoid;
             }
 
-            /* Ensure Page Size */
+            /* 2. EXCEPTION: Allow the large Section 6 to break */
+            .question-block.allow-break {
+                page-break-inside: auto;
+                break-inside: auto;
+            }
+
+            /* 3. SUB-QUESTIONS: Keep individual sub-questions together */
+            /* This ensures a label doesn't split from its textarea */
+            .q-nested {
+                page-break-inside: avoid;
+                break-inside: avoid;
+                display: block;
+                margin-bottom: 20px; /* spacing between items */
+            }
+
+            /* 4. Ensure titles stick to their content */
+            .section-title {
+                page-break-after: avoid;
+                break-after: avoid;
+            }
+
             @page {
                 size: A4 portrait;
-                margin: 0; /* Remove browser default margins to allow full color */
+                margin: 0;
             }
         }
     </style>
@@ -475,7 +474,7 @@
             <span class="section-number">03</span>
         </div>
 
-        <!-- NOTE: Added 'allow-break' class to let this section split across pages naturally -->
+        <!-- NOTE: 'allow-break' class permits this section to span multiple pages -->
         <div class="question-block allow-break">
             <span class="q-label">6. Diagnostic Audit</span>
             <span class="q-sub">Distinguish between 'cool terms' and actual traits. Dig deeper into your friction points.</span>
